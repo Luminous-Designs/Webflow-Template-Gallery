@@ -1,0 +1,19 @@
+#template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .template-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+  }
+  
+  .template-card h3 {
+    margin-top: 0;
+  }
+  
+  .template-card a {
+    display: block;
+    margin-bottom: 10px;
+  }
