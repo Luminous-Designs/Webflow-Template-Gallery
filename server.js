@@ -16,24 +16,43 @@ app.get('/api/templates', (req, res) => {
 app.get('/proxy', async (req, res) => {
   try {
     const url = req.query.url;
-    const cachedResponse = cache.get(url);
+    const isScreenshot = req.query.screenshot === 'true';
+    const cacheKey = `${url}_${isScreenshot}`;
+    const cachedResponse = cache.get(cacheKey);
 
     if (cachedResponse) {
+      res.type(isScreenshot ? 'image/jpeg' : 'text/html');
       res.send(cachedResponse);
     } else {
       const response = await axios.get(url);
-      cache.set(url, response.data);
       
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('X-Frame-Options', 'ALLOW-FROM http://localhost:3000');
-      
-      res.send(response.data);
+      if (isScreenshot) {
+        const screenshot = await captureScreenshot(url);
+        cache.set(cacheKey, screenshot);
+        res.type('image/jpeg');
+        res.send(screenshot);
+      } else {
+        cache.set(cacheKey, response.data);
+        res.type('text/html');
+        res.send(response.data);
+      }
     }
   } catch (error) {
     console.error('Error fetching URL:', error);
     res.status(500).send('Error fetching URL');
   }
 });
+
+const puppeteer = require('puppeteer');
+
+async function captureScreenshot(url) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: 'networkidle0' });
+  const screenshot = await page.screenshot({ type: 'jpeg', quality: 80 });
+  await browser.close();
+  return screenshot;
+}
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

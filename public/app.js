@@ -8,15 +8,16 @@ function createTemplateCard(template) {
   title.textContent = template.title;
   card.appendChild(title);
 
-  const previewContainer = document.createElement('div');
-  previewContainer.classList.add('preview-container');
-  card.appendChild(previewContainer);
+  const screenshotUrl = `/proxy?url=${encodeURIComponent(template.livePreviewUrl)}&screenshot=true`;
+  const screenshotImg = document.createElement('img');
+  screenshotImg.src = screenshotUrl;
+  screenshotImg.alt = 'Template Screenshot';
+  card.appendChild(screenshotImg);
 
-  const previewIframe = document.createElement('iframe');
-  previewIframe.dataset.src = `/proxy?url=${encodeURIComponent(template.livePreviewUrl)}`;
-  previewIframe.classList.add('preview-iframe');
-  previewIframe.classList.add('lazy');
-  previewContainer.appendChild(previewIframe);
+  const previewButton = document.createElement('button');
+  previewButton.textContent = 'Quick Preview';
+  previewButton.addEventListener('click', () => openPreviewModal(template.livePreviewUrl));
+  card.appendChild(previewButton);
 
   const templateLink = document.createElement('a');
   templateLink.href = template.link;
@@ -25,6 +26,31 @@ function createTemplateCard(template) {
   card.appendChild(templateLink);
 
   return card;
+}
+
+function openPreviewModal(previewUrl) {
+  const modal = document.createElement('div');
+  modal.classList.add('modal');
+
+  const modalContent = document.createElement('div');
+  modalContent.classList.add('modal-content');
+
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'Close';
+  closeButton.addEventListener('click', () => closePreviewModal(modal));
+  modalContent.appendChild(closeButton);
+
+  const previewIframe = document.createElement('iframe');
+  previewIframe.src = `/proxy?url=${encodeURIComponent(previewUrl)}`;
+  previewIframe.classList.add('preview-iframe');
+  modalContent.appendChild(previewIframe);
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+}
+
+function closePreviewModal(modal) {
+  modal.remove();
 }
 
 function lazyLoadIframes() {
