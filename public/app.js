@@ -8,11 +8,10 @@ function createTemplateCard(template) {
   title.textContent = template.title;
   card.appendChild(title);
 
-  const previewLink = document.createElement('a');
-  previewLink.href = template.livePreviewUrl;
-  previewLink.target = '_blank';
-  previewLink.textContent = 'Live Preview';
-  card.appendChild(previewLink);
+  const previewIframe = document.createElement('iframe');
+  previewIframe.src = `/proxy?url=${encodeURIComponent(template.livePreviewUrl)}`;
+  previewIframe.classList.add('preview-iframe');
+  card.appendChild(previewIframe);
 
   const templateLink = document.createElement('a');
   templateLink.href = template.link;
@@ -27,7 +26,6 @@ async function loadTemplates() {
   try {
     const response = await fetch('/api/templates');
     const templates = await response.json();
-
     templates.forEach(template => {
       const card = createTemplateCard(template);
       templateGrid.appendChild(card);
