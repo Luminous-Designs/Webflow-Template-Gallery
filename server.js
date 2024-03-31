@@ -32,9 +32,14 @@ app.get('/proxy', async (req, res) => {
         res.type('image/jpeg');
         res.send(screenshot);
       } else {
-        cache.set(cacheKey, response.data);
+        // Modify the HTML content to handle relative URLs
+        const modifiedHtml = response.data.replace(/(href|src)="(?!https?:\/\/)(.*?)"/g, (match, attribute, relativeUrl) => {
+          const absoluteUrl = new URL(relativeUrl, url).href;
+          return `${attribute}="/proxy?url=${encodeURIComponent(absoluteUrl)}"`;
+        });
+        cache.set(cacheKey, modifiedHtml);
         res.type('text/html');
-        res.send(response.data);
+        res.send(modifiedHtml);
       }
     }
   } catch (error) {
