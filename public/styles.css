@@ -1,59 +1,36 @@
 #template-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-  }
-  
-  .template-card {
-    border: 1px solid #ccc;
-    padding: 10px;
-  }
-  
-  .template-card h3 {
-    margin-top: 0;
-  }
-  
-  .template-card a {
-    display: block;
-    margin-bottom: 10px;
-  }
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
 
-  .template-card {
-    margin-bottom: 20px;
-  }
-  
-  .preview-iframe {
-    width: 100%;
-    height: 400px;
-    border: none;
-  }
+.template-card {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
 
-  .preview-container {
-    position: relative;
-  }
+.template-card h3 {
+  margin-top: 0;
+}
 
-  .loading-animation {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 4px solid #ccc;
-    border-top-color: #333;
-    animation: spin 1s infinite linear;
-  }
-  
-  @keyframes spin {
-    0% {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    100% {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
-  }
-  
-  .hidden {
-    display: none;
-  }
+.template-card a {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.preview-container {
+  position: relative;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
+  overflow: hidden;
+}
+
+.preview-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  transform: scale(0.5);
+  transform-origin: top left;
+  border: none;
+}
