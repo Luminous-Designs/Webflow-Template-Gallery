@@ -108,6 +108,16 @@ function lazyLoadIframes() {
   });
 }
 
+
+function shuffleTemplates() {
+  const cards = Array.from(templateGrid.children);
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  cards.forEach(card => templateGrid.appendChild(card));
+}
+
 async function loadTemplates() {
   try {
     const response = await fetch('/api/templates');
@@ -117,7 +127,10 @@ async function loadTemplates() {
       templateGrid.appendChild(card);
     });
     lazyLoadIframes();
-    lazyLoadScreenshots(); // Call lazy loading for screenshots
+    lazyLoadScreenshots();
+
+    const shuffleBtn = document.getElementById('shuffle-btn');
+    shuffleBtn.addEventListener('click', shuffleTemplates);
   } catch (error) {
     console.error('Error loading templates:', error);
   }
