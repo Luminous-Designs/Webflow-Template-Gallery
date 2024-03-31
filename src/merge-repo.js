@@ -54,6 +54,19 @@ async function mergeFiles(selectedFiles, outputFilePath) {
   await fs.promises.writeFile(outputFilePath, mergedContent);
 }
 
+async function createOutputDirectory(outputDirPath) {
+  try {
+    await fs.promises.access(outputDirPath);
+  } catch (error) {
+    await fs.promises.mkdir(outputDirPath);
+  }
+}
+
+function getTimestampedFileName() {
+  const timestamp = new Date().toISOString().replace(/:/g, '-');
+  return `merged-repo-${timestamp}.txt`;
+}
+
 async function main() {
   const currentDir = process.cwd();
 
@@ -61,8 +74,12 @@ async function main() {
   const excludePatterns = ['node_modules']; // Add more patterns if needed
   const selectedFiles = await selectFiles(currentDir, excludePatterns);
 
-  const outputFileName = 'merged-repo.txt';
-  const outputFilePath = path.join(currentDir, outputFileName);
+  const outputDirName = 'llm_text_transcripts';
+  const outputDirPath = path.join(currentDir, outputDirName);
+  await createOutputDirectory(outputDirPath);
+
+  const outputFileName = getTimestampedFileName();
+  const outputFilePath = path.join(outputDirPath, outputFileName);
   await mergeFiles(selectedFiles, outputFilePath);
 
   console.log(`Merged repository saved to: ${outputFilePath}`);
