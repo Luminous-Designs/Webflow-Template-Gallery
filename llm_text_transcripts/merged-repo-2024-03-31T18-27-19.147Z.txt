@@ -1,0 +1,394 @@
+
+/USERS/ROMINMIRMOTAHARI/DOCUMENTS/CUSTOM PROJECTS/WEBFLOW TEMPLATE GALLERY/ADDLIVEPREVIEWURLS.JS CODE IS BELOW
+const axios = require('axios');
+const cheerio = require('cheerio');
+const fs = require('fs');
+
+async function addLivePreviewUrls() {
+  try {
+    // Read the existing templates JSON file
+    const templatesJson = fs.readFileSync('templates.json', 'utf8');
+    const templates = JSON.parse(templatesJson);
+
+    console.log(`Found ${templates.length} templates. Starting to add live preview URLs...`);
+
+    // Iterate over each template
+    for (const [index, template] of templates.entries()) {
+      try {
+        console.log(`Processing template ${index + 1}/${templates.length}: ${template.link}`);
+
+        // Make a request to the template's URL
+        const response = await axios.get(template.link);
+        const $ = cheerio.load(response.data);
+
+        // Find the live preview URL from the button's href attribute
+        const livePreviewUrl = $('#hero-browser-preview').attr('href');
+
+        if (livePreviewUrl) {
+          // Add the live preview URL to the template object
+          template.livePreviewUrl = livePreviewUrl;
+          console.log(`Added live preview URL: ${livePreviewUrl}`);
+        } else {
+          console.log('Live preview URL not found.');
+        }
+      } catch (error) {
+        console.error(`Error processing template: ${template.link}`, error);
+      }
+    }
+
+    // Write the updated templates array back to the JSON file
+    fs.writeFileSync('templates.json', JSON.stringify(templates, null, 2));
+    console.log(`Processing completed. Updated ${templates.length} templates in templates.json`);
+  } catch (error) {
+    console.error('Error processing templates:', error);
+  }
+}
+
+addLivePreviewUrls();
+
+/USERS/ROMINMIRMOTAHARI/DOCUMENTS/CUSTOM PROJECTS/WEBFLOW TEMPLATE GALLERY/PUBLIC/APP.JS CODE IS BELOW
+const templateGrid = document.getElementById('template-grid');
+
+function createTemplateCard(template) {
+  const card = document.createElement('div');
+  card.classList.add('template-card');
+
+  const title = document.createElement('h3');
+  title.textContent = template.title;
+  card.appendChild(title);
+
+  const screenshotUrl = `/proxy?url=${encodeURIComponent(template.livePreviewUrl)}&screenshot=true`;
+  const screenshotImg = document.createElement('img');
+  screenshotImg.setAttribute('data-src', screenshotUrl);
+  screenshotImg.alt = 'Template Screenshot';
+  screenshotImg.classList.add('lazy-screenshot');
+  card.appendChild(screenshotImg);
+
+  const previewButton = document.createElement('button');
+  previewButton.textContent = 'Quick Preview';
+  previewButton.addEventListener('click', () => openPreviewModal(template.livePreviewUrl));
+  card.appendChild(previewButton);
+
+  const templateLink = document.createElement('a');
+  templateLink.href = template.link;
+  templateLink.target = '_blank';
+  templateLink.textContent = 'Template URL';
+  card.appendChild(templateLink);
+
+  return card;
+}
+
+function lazyLoadScreenshots() {
+  const lazyScreenshots = document.querySelectorAll('.lazy-screenshot');
+
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+  };
+
+  const observerCallback = (entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.classList.remove('lazy-screenshot');
+        observer.unobserve(img);
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+  lazyScreenshots.forEach(img => {
+    observer.observe(img);
+  });
+}
+
+function openPreviewModal(previewUrl) {
+  const modal = document.createElement('div');
+  modal.classList.add('modal');
+
+  const modalContent = document.createElement('div');
+  modalContent.classList.add('modal-content');
+
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'Close';
+  closeButton.addEventListener('click', () => closePreviewModal(modal));
+  modalContent.appendChild(closeButton);
+
+  const previewIframe = document.createElement('iframe');
+  previewIframe.src = `/proxy?url=${encodeURIComponent(previewUrl)}`;
+  previewIframe.classList.add('preview-iframe');
+  modalContent.appendChild(previewIframe);
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+}
+
+function closePreviewModal(modal) {
+  modal.remove();
+}
+
+function lazyLoadIframes() {
+  const lazyIframes = document.querySelectorAll('.lazy');
+
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+  };
+
+  const observerCallback = (entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const iframe = entry.target;
+        iframe.src = iframe.dataset.src;
+        iframe.classList.remove('lazy');
+        observer.unobserve(iframe);
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+  lazyIframes.forEach(iframe => {
+    observer.observe(iframe);
+  });
+}
+
+async function loadTemplates() {
+  try {
+    const response = await fetch('/api/templates');
+    const templates = await response.json();
+    templates.forEach(template => {
+      const card = createTemplateCard(template);
+      templateGrid.appendChild(card);
+    });
+    lazyLoadIframes();
+    lazyLoadScreenshots(); // Call lazy loading for screenshots
+  } catch (error) {
+    console.error('Error loading templates:', error);
+  }
+}
+
+loadTemplates();
+
+/USERS/ROMINMIRMOTAHARI/DOCUMENTS/CUSTOM PROJECTS/WEBFLOW TEMPLATE GALLERY/PUBLIC/INDEX.HTML CODE IS BELOW
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Webflow Template Gallery</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Webflow Template Gallery</h1>
+  <div id="template-grid"></div>
+  <script src="app.js"></script>
+</body>
+</html>
+
+/USERS/ROMINMIRMOTAHARI/DOCUMENTS/CUSTOM PROJECTS/WEBFLOW TEMPLATE GALLERY/PUBLIC/STYLES.CSS CODE IS BELOW
+#template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 20px;
+}
+
+.template-card {
+  border: 1px solid #ccc;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.template-card h3 {
+  margin-top: 0;
+}
+
+.template-card img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  max-height: 600px;
+  margin-bottom: 10px;
+}
+
+.template-card a {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.preview-container {
+  position: relative;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
+  overflow: hidden;
+}
+
+.preview-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: scale(1);
+  transform-origin: top left;
+  border: none;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 90vw;
+  height: 90vh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
+.modal .preview-iframe {
+  
+  
+  border: none;
+}
+
+/USERS/ROMINMIRMOTAHARI/DOCUMENTS/CUSTOM PROJECTS/WEBFLOW TEMPLATE GALLERY/SCRAPER.JS CODE IS BELOW
+const axios = require('axios');
+const cheerio = require('cheerio');
+const fs = require('fs');
+
+async function scrapeWebflowTemplates() {
+    try {
+      const sitemapUrl = 'https://webflow.com/sitemap.xml';
+      const response = await axios.get(sitemapUrl);
+      const $ = cheerio.load(response.data, { xmlMode: true });
+      const templateUrls = $('url > loc')
+        .map((_, el) => $(el).text())
+        .get()
+        .filter(url => url.includes('/templates/html/'));
+  
+      const templates = [];
+  
+      console.log(`Found ${templateUrls.length} templates. Starting scraping...`);
+  
+      for (const [index, templateUrl] of templateUrls.entries()) {
+        try {
+          console.log(`Scraping template ${index + 1}/${templateUrls.length}: ${templateUrl}`);
+  
+          const templateResponse = await axios.get(templateUrl);
+          const $template = cheerio.load(templateResponse.data);
+          const title = $template('title').text();
+          const images = $template('.owl-stage img')
+            .map((_, el) => $(el).attr('src'))
+            .get();
+  
+          templates.push({
+            title,
+            images,
+            link: templateUrl
+          });
+  
+          console.log(`Added template: ${title}`);
+        } catch (error) {
+          console.error(`Error scraping template: ${templateUrl}`, error);
+        }
+      }
+  
+      fs.writeFileSync('templates.json', JSON.stringify(templates, null, 2));
+      console.log(`Scraping completed. ${templates.length} templates saved to templates.json`);
+    } catch (error) {
+      console.error('Error scraping templates:', error);
+    }
+  } 
+
+scrapeWebflowTemplates();
+
+/USERS/ROMINMIRMOTAHARI/DOCUMENTS/CUSTOM PROJECTS/WEBFLOW TEMPLATE GALLERY/SERVER.JS CODE IS BELOW
+const express = require('express');
+const fs = require('fs');
+const axios = require('axios');
+const NodeCache = require('node-cache');
+
+const app = express();
+const cache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
+
+app.use(express.static('public'));
+
+app.get('/api/templates', (req, res) => {
+  const templates = JSON.parse(fs.readFileSync('templates.json', 'utf8'));
+  res.json(templates);
+});
+
+app.get('/proxy', async (req, res) => {
+  try {
+    const url = req.query.url;
+    const isScreenshot = req.query.screenshot === 'true';
+    const cacheKey = `${url}_${isScreenshot}`;
+    const cachedResponse = cache.get(cacheKey);
+
+    if (cachedResponse) {
+      res.type(isScreenshot ? 'image/jpeg' : 'text/html');
+      res.send(cachedResponse);
+    } else {
+      const response = await axios.get(url);
+      
+      if (isScreenshot) {
+        const screenshot = await captureScreenshot(url);
+        cache.set(cacheKey, screenshot);
+        res.type('image/jpeg');
+        res.send(screenshot);
+      } else {
+        // Modify the HTML content to handle relative URLs
+        const modifiedHtml = response.data.replace(/(href|src)="(?!https?:\/\/)(.*?)"/g, (match, attribute, relativeUrl) => {
+          const absoluteUrl = new URL(relativeUrl, url).href;
+          return `${attribute}="/proxy?url=${encodeURIComponent(absoluteUrl)}"`;
+        });
+        cache.set(cacheKey, modifiedHtml);
+        res.type('text/html');
+        res.send(modifiedHtml);
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching URL:', error);
+    res.status(500).send('Error fetching URL');
+  }
+});
+
+const puppeteer = require('puppeteer');
+
+async function captureScreenshot(url) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: 'networkidle0' });
+  const screenshot = await page.screenshot({ type: 'jpeg', quality: 80 });
+  await browser.close();
+  return screenshot;
+}
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
