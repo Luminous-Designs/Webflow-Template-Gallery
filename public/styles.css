@@ -1,16 +1,26 @@
 #template-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
   gap: 20px;
 }
 
 .template-card {
   border: 1px solid #ccc;
   padding: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .template-card h3 {
   margin-top: 0;
+}
+
+.template-card img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  max-height: 600px;
+  margin-bottom: 10px;
 }
 
 .template-card a {
@@ -28,9 +38,9 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 200%;
-  height: 200%;
-  transform: scale(0.5);
+  width: 100%;
+  height: 100%;
+  transform: scale(1);
   transform-origin: top left;
   border: none;
 }
@@ -53,20 +63,23 @@
   padding: 20px;
   max-width: 90vw;
   max-height: 90vh;
-  width:90vw;
-  height:90vh;
-  overflow: auto;
+  width: 90vw;
+  height: 90vh;
+  overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-content button {
   position: absolute;
   top: 10px;
   right: 10px;
+  z-index: 1;
 }
 
 .modal .preview-iframe {
-  width: 100%;
-  height: 80vh;
+  
+  
   border: none;
 }

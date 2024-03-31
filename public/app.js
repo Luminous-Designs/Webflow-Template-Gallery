@@ -10,8 +10,9 @@ function createTemplateCard(template) {
 
   const screenshotUrl = `/proxy?url=${encodeURIComponent(template.livePreviewUrl)}&screenshot=true`;
   const screenshotImg = document.createElement('img');
-  screenshotImg.src = screenshotUrl;
+  screenshotImg.setAttribute('data-src', screenshotUrl);
   screenshotImg.alt = 'Template Screenshot';
+  screenshotImg.classList.add('lazy-screenshot');
   card.appendChild(screenshotImg);
 
   const previewButton = document.createElement('button');
@@ -26,6 +27,33 @@ function createTemplateCard(template) {
   card.appendChild(templateLink);
 
   return card;
+}
+
+function lazyLoadScreenshots() {
+  const lazyScreenshots = document.querySelectorAll('.lazy-screenshot');
+
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+  };
+
+  const observerCallback = (entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.classList.remove('lazy-screenshot');
+        observer.unobserve(img);
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+  lazyScreenshots.forEach(img => {
+    observer.observe(img);
+  });
 }
 
 function openPreviewModal(previewUrl) {
@@ -89,6 +117,7 @@ async function loadTemplates() {
       templateGrid.appendChild(card);
     });
     lazyLoadIframes();
+    lazyLoadScreenshots(); // Call lazy loading for screenshots
   } catch (error) {
     console.error('Error loading templates:', error);
   }
