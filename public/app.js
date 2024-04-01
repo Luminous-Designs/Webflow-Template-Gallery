@@ -8,11 +8,9 @@ function createTemplateCard(template) {
   title.textContent = template.title;
   card.appendChild(title);
 
-  const screenshotUrl = `/proxy?url=${encodeURIComponent(template.livePreviewUrl)}&screenshot=true`;
   const screenshotImg = document.createElement('img');
-  screenshotImg.setAttribute('data-src', screenshotUrl);
+  screenshotImg.src = template.screenshotPath;
   screenshotImg.alt = 'Template Screenshot';
-  screenshotImg.classList.add('lazy-screenshot');
   card.appendChild(screenshotImg);
 
   const previewButton = document.createElement('button');
@@ -127,7 +125,6 @@ async function loadTemplates() {
       templateGrid.appendChild(card);
     });
     lazyLoadIframes();
-    lazyLoadScreenshots();
 
     const shuffleBtn = document.getElementById('shuffle-btn');
     shuffleBtn.addEventListener('click', shuffleTemplates);

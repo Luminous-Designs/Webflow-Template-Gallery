@@ -8,6 +8,9 @@ const cache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
 
 app.use(express.static('public'));
 
+app.use('/screenshots', express.static('screenshots'));
+
+
 app.get('/api/templates', (req, res) => {
   const templates = JSON.parse(fs.readFileSync('templates.json', 'utf8'));
   res.json(templates);
