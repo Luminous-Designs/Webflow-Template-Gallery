@@ -15,7 +15,7 @@
     "express": "^4.19.2",
     "node-cache": "^5.1.2",
     "playwright": "^1.42.1",
-    "puppeteer": "^22.6.1",
+    "puppeteer": "^22.6.2",
     "uuid": "^9.0.1"
   }
 }

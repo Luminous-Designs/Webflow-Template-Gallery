@@ -1,29 +1,41 @@
-const fs = require('fs');
-const puppeteer = require('puppeteer');
+const fs = require("fs");
+const puppeteer = require("puppeteer");
+
+// Define the delay function
+function delay(time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
 
 async function updateTemplateScreenshots() {
   try {
-    const templatesData = fs.readFileSync('templates.json', 'utf8');
+    const templatesData = fs.readFileSync("templates.json", "utf8");
     const templates = JSON.parse(templatesData);
 
-    console.log(`Found ${templates.length} templates. Starting screenshot update...`);
+    console.log(
+      `Found ${templates.length} templates. Starting screenshot update...`,
+    );
 
     for (const [index, template] of templates.entries()) {
       try {
-        console.log(`Capturing screenshot for template ${index + 1}/${templates.length}: ${template.title}`);
+        console.log(
+          `Capturing screenshot for template ${index + 1}/${templates.length}: ${template.title}`,
+        );
 
         const screenshotPath = `screenshots/${template.id}.jpg`;
         await captureScreenshot(template.livePreviewUrl, screenshotPath);
 
         console.log(`Screenshot updated for template: ${template.title}`);
       } catch (error) {
-        console.error(`Error capturing screenshot for template: ${template.title}`, error);
+        console.error(
+          `Error capturing screenshot for template: ${template.title}`,
+          error,
+        );
       }
     }
 
-    console.log('Screenshot update completed.');
+    console.log("Screenshot update completed.");
   } catch (error) {
-    console.error('Error updating template screenshots:', error);
+    console.error("Error updating template screenshots:", error);
   }
 }
 
@@ -33,10 +45,14 @@ async function captureScreenshot(url, screenshotPath) {
   await page.setViewport({
     width: 1920,
     height: 1080,
-    deviceScaleFactor: 1
+    deviceScaleFactor: 1,
   });
-  await page.goto(url, { waitUntil: 'networkidle0' });
-  await page.screenshot({ path: screenshotPath, type: 'jpeg', quality: 80 });
+  await page.goto(url, { waitUntil: "networkidle0" });
+
+  // Use the delay function before taking a screenshot
+  await delay(5000); // Waits for 5 seconds
+
+  await page.screenshot({ path: screenshotPath, type: "jpeg", quality: 80 });
   await browser.close();
 }
 
