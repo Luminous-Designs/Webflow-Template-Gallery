@@ -3,6 +3,7 @@ const templateGrid = document.getElementById('template-grid');
 function createTemplateCard(template) {
   const card = document.createElement('div');
   card.classList.add('template-card');
+  card.dataset.tags = template.tags.join(',');
 
   const title = document.createElement('h3');
   title.textContent = template.title;
@@ -106,7 +107,6 @@ function lazyLoadIframes() {
   });
 }
 
-
 function shuffleTemplates() {
   const cards = Array.from(templateGrid.children);
   for (let i = cards.length - 1; i > 0; i--) {
@@ -116,14 +116,49 @@ function shuffleTemplates() {
   cards.forEach(card => templateGrid.appendChild(card));
 }
 
+function initializeTagSearch(tags) {
+  const tagSearch = document.getElementById('tag-search');
+  new Awesomplete(tagSearch, {
+    list: tags,
+    autoFirst: true,
+    filter: Awesomplete.FILTER_CONTAINS,
+    minChars: 1,
+    maxItems: 5
+  });
+
+  tagSearch.addEventListener('awesomplete-selectcomplete', (event) => {
+    const selectedTag = event.text.trim();
+    filterTemplatesByTag(selectedTag);
+  });
+}
+
+function filterTemplatesByTag(selectedTag) {
+  const lowerCaseSelectedTag = selectedTag.toLowerCase();
+  const templateCards = document.querySelectorAll('.template-card');
+  templateCards.forEach(card => {
+    const tags = card.dataset.tags.split(',');
+    if (tags.includes(lowerCaseSelectedTag)) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
 async function loadTemplates() {
   try {
     const response = await fetch('/api/templates');
     const templates = await response.json();
+    
+    const uniqueTags = new Set();
     templates.forEach(template => {
+      template.tags = template.tags.map(tag => tag.toLowerCase());
+      template.tags.forEach(tag => uniqueTags.add(tag));
       const card = createTemplateCard(template);
       templateGrid.appendChild(card);
     });
+    
+    initializeTagSearch(Array.from(uniqueTags));
     lazyLoadIframes();
 
     const shuffleBtn = document.getElementById('shuffle-btn');
