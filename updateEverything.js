@@ -4,32 +4,51 @@ const fs = require('fs');
 const puppeteer = require('puppeteer');
 const { v4: uuidv4 } = require('uuid');
 
+// Define the delay function
+function delay(time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
 async function updateTemplates() {
   try {
+    console.log('Starting template update process...');
+
     // Step 1: Scrape Webflow templates page
+    console.log('Scraping Webflow templates page...');
     const newTemplates = await scrapeWebflowTemplatesPage();
+    console.log(`Found ${newTemplates.length} templates on the Webflow templates page.`);
 
     // Step 2: Read existing templates from templates.json
+    console.log('Reading existing templates from templates.json...');
     const existingTemplates = JSON.parse(fs.readFileSync('templates.json', 'utf8'));
+    console.log(`Found ${existingTemplates.length} existing templates in templates.json.`);
 
     // Step 3: Filter out new templates that are not already in existingTemplates
+    console.log('Filtering out new templates...');
     const templatesToAdd = newTemplates.filter(
       (newTemplate) =>
         !existingTemplates.some((existingTemplate) => existingTemplate.link === newTemplate.link)
     );
+    console.log(`Found ${templatesToAdd.length} new templates to add.`);
 
     // Step 4: Scrape additional details for new templates
+    console.log('Scraping additional details for new templates...');
     const detailedTemplates = await Promise.all(
       templatesToAdd.map((template) => scrapeTemplateDetails(template))
     );
+    console.log('Finished scraping additional details for new templates.');
 
     // Step 5: Merge new templates with existing templates
+    console.log('Merging new templates with existing templates...');
     const mergedTemplates = [...existingTemplates, ...detailedTemplates];
+    console.log(`Merged templates. Total templates: ${mergedTemplates.length}`);
 
     // Step 6: Write the updated templates to templates.json
+    console.log('Writing updated templates to templates.json...');
     fs.writeFileSync('templates.json', JSON.stringify(mergedTemplates, null, 2));
+    console.log('Templates updated successfully in templates.json.');
 
-    console.log('Templates updated successfully.');
+    console.log('Template update process completed.');
   } catch (error) {
     console.error('Error updating templates:', error);
   }
@@ -101,7 +120,14 @@ async function captureScreenshot(url, screenshotPath) {
     deviceScaleFactor: 1,
   });
   await page.goto(url, { waitUntil: 'networkidle0' });
+
+  // Use the delay function before taking a screenshot
+  console.log(`Waiting for 5 seconds before capturing screenshot for ${url}...`);
+  await delay(5000); // Waits for 5 seconds
+
   await page.screenshot({ path: screenshotPath, type: 'jpeg', quality: 80 });
+  console.log(`Screenshot captured for ${url}.`);
+
   await browser.close();
 }
 
