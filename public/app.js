@@ -87,10 +87,15 @@ function openPreviewModal(previewUrl, templateUrl) {
 
   modalContent.appendChild(buttonsContainer);
 
+  const previewContainer = document.createElement('div');
+  previewContainer.classList.add('preview-container');
+
   const previewIframe = document.createElement('iframe');
   previewIframe.src = `/proxy?url=${encodeURIComponent(previewUrl)}`;
   previewIframe.classList.add('preview-iframe');
-  modalContent.appendChild(previewIframe);
+  previewContainer.appendChild(previewIframe);
+
+  modalContent.appendChild(previewContainer);
 
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
@@ -100,6 +105,7 @@ function openPreviewModal(previewUrl, templateUrl) {
     modalContent.style.transform = 'scale(1)';
   }, 0);
 }
+
 
 function closePreviewModal(modal) {
   const modalContent = modal.querySelector('.modal-content');
