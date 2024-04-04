@@ -5,25 +5,35 @@ function createTemplateCard(template) {
   card.classList.add('template-card');
   card.dataset.tags = template.tags.join(',');
 
+  const titleDiv = document.createElement('div');
+  titleDiv.classList.add('title-div');
+
   const title = document.createElement('h3');
   title.textContent = template.title;
-  card.appendChild(title);
+  titleDiv.appendChild(title);
 
   const screenshotImg = document.createElement('img');
   screenshotImg.src = template.screenshotPath;
   screenshotImg.alt = 'Template Screenshot';
-  card.appendChild(screenshotImg);
+  titleDiv.appendChild(screenshotImg);
+
+  card.appendChild(titleDiv);
+
+  const actionsDiv = document.createElement('div');
+  actionsDiv.classList.add('actions-div');
 
   const previewButton = document.createElement('button');
   previewButton.textContent = 'Quick Preview';
-  previewButton.addEventListener('click', () => openPreviewModal(template.livePreviewUrl));
-  card.appendChild(previewButton);
+  previewButton.addEventListener('click', () => openPreviewModal(template.livePreviewUrl, template.link));
+  actionsDiv.appendChild(previewButton);
 
   const templateLink = document.createElement('a');
   templateLink.href = template.link;
   templateLink.target = '_blank';
   templateLink.textContent = 'Template URL';
-  card.appendChild(templateLink);
+  actionsDiv.appendChild(templateLink);
+
+  card.appendChild(actionsDiv);
 
   return card;
 }
@@ -55,17 +65,27 @@ function lazyLoadScreenshots() {
   });
 }
 
-function openPreviewModal(previewUrl) {
+function openPreviewModal(previewUrl, templateUrl) {
   const modal = document.createElement('div');
   modal.classList.add('modal');
 
   const modalContent = document.createElement('div');
   modalContent.classList.add('modal-content');
 
+  const buttonsContainer = document.createElement('div');
+  buttonsContainer.classList.add('buttons-container');
+
   const closeButton = document.createElement('button');
   closeButton.textContent = 'Close';
   closeButton.addEventListener('click', () => closePreviewModal(modal));
-  modalContent.appendChild(closeButton);
+  buttonsContainer.appendChild(closeButton);
+
+  const templateUrlButton = document.createElement('button');
+  templateUrlButton.textContent = 'Go to Template URL';
+  templateUrlButton.addEventListener('click', () => window.open(templateUrl, '_blank'));
+  buttonsContainer.appendChild(templateUrlButton);
+
+  modalContent.appendChild(buttonsContainer);
 
   const previewIframe = document.createElement('iframe');
   previewIframe.src = `/proxy?url=${encodeURIComponent(previewUrl)}`;
@@ -74,10 +94,21 @@ function openPreviewModal(previewUrl) {
 
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
+
+  setTimeout(() => {
+    modal.style.opacity = '1';
+    modalContent.style.transform = 'scale(1)';
+  }, 0);
 }
 
 function closePreviewModal(modal) {
-  modal.remove();
+  const modalContent = modal.querySelector('.modal-content');
+  modal.style.opacity = '0';
+  modalContent.style.transform = 'scale(0.8)';
+
+  setTimeout(() => {
+    modal.remove();
+  }, 300);
 }
 
 function lazyLoadIframes() {
