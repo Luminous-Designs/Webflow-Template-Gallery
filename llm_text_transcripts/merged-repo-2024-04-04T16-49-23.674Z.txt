@@ -1,0 +1,624 @@
+
+/USERS/APPLE/DOCUMENTS/SCREENSHOTIFY/WEBFLOW-TEMPLATE-GALLERY/PUBLIC/APP.JS CODE IS BELOW
+const templateGrid = document.getElementById('template-grid');
+
+function createTemplateCard(template) {
+  const card = document.createElement('div');
+  card.classList.add('template-card');
+  card.dataset.tags = template.tags.join(',');
+
+  const title = document.createElement('h3');
+  title.textContent = template.title;
+  card.appendChild(title);
+
+  const screenshotImg = document.createElement('img');
+  screenshotImg.src = template.screenshotPath;
+  screenshotImg.alt = 'Template Screenshot';
+  card.appendChild(screenshotImg);
+
+  const previewButton = document.createElement('button');
+  previewButton.textContent = 'Quick Preview';
+  previewButton.addEventListener('click', () => openPreviewModal(template.livePreviewUrl));
+  card.appendChild(previewButton);
+
+  const templateLink = document.createElement('a');
+  templateLink.href = template.link;
+  templateLink.target = '_blank';
+  templateLink.textContent = 'Template URL';
+  card.appendChild(templateLink);
+
+  return card;
+}
+
+function lazyLoadScreenshots() {
+  const lazyScreenshots = document.querySelectorAll('.lazy-screenshot');
+
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+  };
+
+  const observerCallback = (entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.classList.remove('lazy-screenshot');
+        observer.unobserve(img);
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+  lazyScreenshots.forEach(img => {
+    observer.observe(img);
+  });
+}
+
+function openPreviewModal(previewUrl) {
+  const modal = document.createElement('div');
+  modal.classList.add('modal');
+
+  const modalContent = document.createElement('div');
+  modalContent.classList.add('modal-content');
+
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'Close';
+  closeButton.addEventListener('click', () => closePreviewModal(modal));
+  modalContent.appendChild(closeButton);
+
+  const previewIframe = document.createElement('iframe');
+  previewIframe.src = `/proxy?url=${encodeURIComponent(previewUrl)}`;
+  previewIframe.classList.add('preview-iframe');
+  modalContent.appendChild(previewIframe);
+
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+}
+
+function closePreviewModal(modal) {
+  modal.remove();
+}
+
+function lazyLoadIframes() {
+  const lazyIframes = document.querySelectorAll('.lazy');
+
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+  };
+
+  const observerCallback = (entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const iframe = entry.target;
+        iframe.src = iframe.dataset.src;
+        iframe.classList.remove('lazy');
+        observer.unobserve(iframe);
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+  lazyIframes.forEach(iframe => {
+    observer.observe(iframe);
+  });
+}
+
+function shuffleTemplates() {
+  const cards = Array.from(templateGrid.children);
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  cards.forEach(card => templateGrid.appendChild(card));
+}
+
+function initializeTagSearch(tags) {
+  const tagSearch = document.getElementById('tag-search');
+  new Awesomplete(tagSearch, {
+    list: tags,
+    autoFirst: true,
+    filter: Awesomplete.FILTER_CONTAINS,
+    minChars: 1,
+    maxItems: 5
+  });
+
+  tagSearch.addEventListener('awesomplete-selectcomplete', (event) => {
+    const selectedTag = event.text.trim();
+    filterTemplatesByTag(selectedTag);
+  });
+}
+
+function filterTemplatesByTag(selectedTag) {
+  const lowerCaseSelectedTag = selectedTag.toLowerCase();
+  const templateCards = document.querySelectorAll('.template-card');
+  templateCards.forEach(card => {
+    const tags = card.dataset.tags.split(',');
+    if (tags.includes(lowerCaseSelectedTag)) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+async function loadTemplates() {
+  try {
+    const response = await fetch('/api/templates');
+    const templates = await response.json();
+    
+    const uniqueTags = new Set();
+    templates.forEach(template => {
+      template.tags = template.tags.map(tag => tag.toLowerCase());
+      template.tags.forEach(tag => uniqueTags.add(tag));
+      const card = createTemplateCard(template);
+      templateGrid.appendChild(card);
+    });
+    
+    initializeTagSearch(Array.from(uniqueTags));
+    lazyLoadIframes();
+
+    const shuffleBtn = document.getElementById('shuffle-btn');
+    shuffleBtn.addEventListener('click', shuffleTemplates);
+  } catch (error) {
+    console.error('Error loading templates:', error);
+  }
+}
+
+loadTemplates();
+
+/USERS/APPLE/DOCUMENTS/SCREENSHOTIFY/WEBFLOW-TEMPLATE-GALLERY/PUBLIC/INDEX.HTML CODE IS BELOW
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Webflow Template Gallery</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css">
+
+</head>
+<body>
+  
+  <div id="tag-search-container">
+    <input type="text" id="tag-search" placeholder="Search tags...">
+  </div>
+
+  <h1>Webflow Template Gallery</h1>
+  <div id="template-grid"></div>
+  <nav id="bottom-nav">
+    <button id="shuffle-btn">Shuffle</button>
+  </nav>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
+/USERS/APPLE/DOCUMENTS/SCREENSHOTIFY/WEBFLOW-TEMPLATE-GALLERY/PUBLIC/STYLES.CSS CODE IS BELOW
+#template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 20px;
+}
+
+.template-card {
+  border: 1px solid #ccc;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.template-card h3 {
+  margin-top: 0;
+}
+
+.template-card img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  max-height: 600px;
+  margin-bottom: 10px;
+}
+
+.template-card a {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.preview-container {
+  position: relative;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
+  overflow: hidden;
+}
+
+.preview-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: scale(1);
+  transform-origin: top left;
+  border: none;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 90vw;
+  height: 90vh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
+.modal .preview-iframe {
+  
+  
+  border: none;
+}
+
+/* ... previous styles ... */
+
+#bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #f2f2f2;
+  padding: 10px;
+  text-align: center;
+  z-index: 9999;
+}
+
+#shuffle-btn {
+  padding: 8px 16px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+/USERS/APPLE/DOCUMENTS/SCREENSHOTIFY/WEBFLOW-TEMPLATE-GALLERY/SCRAPER.JS CODE IS BELOW
+const axios = require('axios');
+const cheerio = require('cheerio');
+const fs = require('fs');
+const puppeteer = require('puppeteer');
+const { v4: uuidv4 } = require('uuid');
+
+async function scrapeWebflowTemplates() {
+  try {
+    const sitemapUrl = 'https://webflow.com/sitemap.xml';
+    const response = await axios.get(sitemapUrl);
+    const $ = cheerio.load(response.data, { xmlMode: true });
+    const templateUrls = $('url > loc')
+      .map((_, el) => $(el).text())
+      .get()
+      .filter(url => url.includes('/templates/html/'));
+
+    const templates = [];
+
+    console.log(`Found ${templateUrls.length} templates. Starting scraping...`);
+
+    for (const [index, templateUrl] of templateUrls.entries()) {
+      try {
+        console.log(`Scraping template ${index + 1}/${templateUrls.length}: ${templateUrl}`);
+
+        const templateResponse = await axios.get(templateUrl);
+        const $template = cheerio.load(templateResponse.data);
+        const title = $template('title').text();
+        const images = $template('.owl-stage img')
+          .map((_, el) => $(el).attr('src'))
+          .get();
+
+        const livePreviewUrl = $template('#hero-browser-preview').attr('href');
+        const tags = $template('.hero_tag-list_link div')
+          .map((_, el) => $(el).text())
+          .get();
+
+        const id = uuidv4();
+
+        const screenshotPath = `screenshots/${id}.jpg`;
+        await captureScreenshot(livePreviewUrl, screenshotPath);
+
+        templates.push({
+          id,
+          title,
+          images,
+          link: templateUrl,
+          livePreviewUrl,
+          tags,
+          screenshotPath
+        });
+
+        console.log(`Added template: ${title}`);
+      } catch (error) {
+        console.error(`Error scraping template: ${templateUrl}`, error);
+      }
+    }
+
+    fs.writeFileSync('templates.json', JSON.stringify(templates, null, 2));
+    console.log(`Scraping completed. ${templates.length} templates saved to templates.json`);
+  } catch (error) {
+    console.error('Error scraping templates:', error);
+  }
+}
+
+async function captureScreenshot(url, screenshotPath) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setViewport({
+    width: 1920,
+    height: 1080,
+    deviceScaleFactor: 1
+  });
+  await page.goto(url, { waitUntil: 'networkidle0' });
+  await page.screenshot({ path: screenshotPath, type: 'jpeg', quality: 80 });
+  await browser.close();
+}
+
+scrapeWebflowTemplates();
+
+/USERS/APPLE/DOCUMENTS/SCREENSHOTIFY/WEBFLOW-TEMPLATE-GALLERY/SERVER.JS CODE IS BELOW
+const express = require('express');
+const fs = require('fs');
+const axios = require('axios');
+const NodeCache = require('node-cache');
+
+const app = express();
+const cache = new NodeCache({ stdTTL: 3600 }); // Cache for 1 hour
+
+app.use(express.static('public'));
+
+app.use('/screenshots', express.static('screenshots'));
+
+
+app.get('/api/templates', (req, res) => {
+  const templates = JSON.parse(fs.readFileSync('templates.json', 'utf8'));
+  res.json(templates);
+});
+
+app.get('/proxy', async (req, res) => {
+  try {
+    const url = req.query.url;
+    const isScreenshot = req.query.screenshot === 'true';
+    const cacheKey = `${url}_${isScreenshot}`;
+    const cachedResponse = cache.get(cacheKey);
+
+    if (cachedResponse) {
+      res.type(isScreenshot ? 'image/jpeg' : 'text/html');
+      res.send(cachedResponse);
+    } else {
+      const response = await axios.get(url);
+      
+      if (isScreenshot) {
+        const screenshot = await captureScreenshot(url);
+        cache.set(cacheKey, screenshot);
+        res.type('image/jpeg');
+        res.send(screenshot);
+      } else {
+        // Modify the HTML content to handle relative URLs
+        const modifiedHtml = response.data.replace(/(href|src)="(?!https?:\/\/)(.*?)"/g, (match, attribute, relativeUrl) => {
+          const absoluteUrl = new URL(relativeUrl, url).href;
+          return `${attribute}="/proxy?url=${encodeURIComponent(absoluteUrl)}"`;
+        });
+        cache.set(cacheKey, modifiedHtml);
+        res.type('text/html');
+        res.send(modifiedHtml);
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching URL:', error);
+    res.status(500).send('Error fetching URL');
+  }
+});
+
+const puppeteer = require('puppeteer');
+
+async function captureScreenshot(url) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setViewport({
+    width: 1920,
+    height: 1080,
+    deviceScaleFactor: 1
+  });
+  await page.goto(url, { waitUntil: 'networkidle0' });
+  const screenshot = await page.screenshot({ type: 'jpeg', quality: 80 });
+  await browser.close();
+  return screenshot;
+}
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+/USERS/APPLE/DOCUMENTS/SCREENSHOTIFY/WEBFLOW-TEMPLATE-GALLERY/UPDATEEVERYTHING.JS CODE IS BELOW
+const axios = require('axios');
+const cheerio = require('cheerio');
+const fs = require('fs');
+const puppeteer = require('puppeteer');
+const { v4: uuidv4 } = require('uuid');
+
+async function updateTemplates() {
+  try {
+    // Step 1: Scrape Webflow templates
+    const newTemplates = await scrapeWebflowTemplates();
+
+    // Step 2: Read existing templates from templates.json
+    const existingTemplates = JSON.parse(fs.readFileSync('templates.json', 'utf8'));
+
+    // Step 3: Merge new templates with existing templates
+    const mergedTemplates = [...existingTemplates, ...newTemplates];
+
+    // Step 4: Add live preview URLs to the merged templates
+    await addLivePreviewUrls(mergedTemplates);
+
+    // Step 5: Capture screenshots for the merged templates
+    await captureScreenshots(mergedTemplates);
+
+    // Step 6: Write the updated templates to templates.json
+    fs.writeFileSync('templates.json', JSON.stringify(mergedTemplates, null, 2));
+
+    console.log('Templates updated successfully.');
+  } catch (error) {
+    console.error('Error updating templates:', error);
+  }
+}
+
+async function scrapeWebflowTemplates() {
+    try {
+      const sitemapUrl = 'https://webflow.com/sitemap.xml';
+      const response = await axios.get(sitemapUrl);
+      const $ = cheerio.load(response.data, { xmlMode: true });
+      const templateUrls = $('url > loc')
+        .map((_, el) => $(el).text())
+        .get()
+        .filter(url => url.includes('/templates/html/'));
+  
+      // Read existing templates from templates.json
+      const existingTemplates = JSON.parse(fs.readFileSync('templates.json', 'utf8'));
+      const existingTemplateUrls = existingTemplates.map(template => template.link);
+  
+      // Filter out template URLs that are already present in existingTemplateUrls
+      const newTemplateUrls = templateUrls.filter(url => !existingTemplateUrls.includes(url));
+  
+      const newTemplates = [];
+  
+      console.log(`Found ${newTemplateUrls.length} new templates. Starting scraping...`);
+  
+      for (const [index, templateUrl] of newTemplateUrls.entries()) {
+        try {
+          console.log(`Scraping new template ${index + 1}/${newTemplateUrls.length}: ${templateUrl}`);
+  
+          const templateResponse = await axios.get(templateUrl);
+          const $template = cheerio.load(templateResponse.data);
+          const title = $template('title').text();
+          const images = $template('.owl-stage img')
+            .map((_, el) => $(el).attr('src'))
+            .get();
+  
+          const livePreviewUrl = $template('#hero-browser-preview').attr('href');
+          const tags = $template('.hero_tag-list_link div')
+            .map((_, el) => $(el).text())
+            .get();
+  
+          const id = uuidv4();
+  
+          const screenshotPath = `screenshots/${id}.jpg`;
+  
+          newTemplates.push({
+            id,
+            title,
+            images,
+            link: templateUrl,
+            livePreviewUrl,
+            tags,
+            screenshotPath
+          });
+  
+          console.log(`Added new template: ${title}`);
+        } catch (error) {
+          console.error(`Error scraping template: ${templateUrl}`, error);
+        }
+      }
+  
+      return newTemplates;
+    } catch (error) {
+      console.error('Error scraping templates:', error);
+      return [];
+    }
+  }
+
+async function addLivePreviewUrls(templates) {
+  try {
+    console.log(`Starting to add live preview URLs...`);
+
+    for (const [index, template] of templates.entries()) {
+      try {
+        console.log(`Processing template ${index + 1}/${templates.length}: ${template.link}`);
+
+        const response = await axios.get(template.link);
+        const $ = cheerio.load(response.data);
+
+        const livePreviewUrl = $('#hero-browser-preview').attr('href');
+
+        if (livePreviewUrl) {
+          template.livePreviewUrl = livePreviewUrl;
+          console.log(`Added live preview URL: ${livePreviewUrl}`);
+        } else {
+          console.log('Live preview URL not found.');
+        }
+      } catch (error) {
+        console.error(`Error processing template: ${template.link}`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error adding live preview URLs:', error);
+  }
+}
+
+async function captureScreenshots(templates) {
+  try {
+    console.log(`Starting screenshot capture...`);
+
+    for (const [index, template] of templates.entries()) {
+      try {
+        console.log(`Capturing screenshot for template ${index + 1}/${templates.length}: ${template.title}`);
+
+        const screenshotPath = `screenshots/${template.id}.jpg`;
+        await captureScreenshot(template.livePreviewUrl, screenshotPath);
+
+        console.log(`Screenshot captured for template: ${template.title}`);
+      } catch (error) {
+        console.error(`Error capturing screenshot for template: ${template.title}`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error capturing screenshots:', error);
+  }
+}
+
+async function captureScreenshot(url, screenshotPath) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setViewport({
+    width: 1920,
+    height: 1080,
+    deviceScaleFactor: 1
+  });
+  await page.goto(url, { waitUntil: 'networkidle0' });
+  await page.screenshot({ path: screenshotPath, type: 'jpeg', quality: 80 });
+  await browser.close();
+}
+
+// Call the updateTemplates function to start the process
+updateTemplates();
