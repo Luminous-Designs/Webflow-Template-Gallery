@@ -1,6 +1,10 @@
+
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
+  font-family: "Poppins", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+  background-color: #354f52;
   margin: 0;
   padding: 0;
 }
@@ -8,7 +12,8 @@ body {
 h1 {
   text-align: center;
   margin: 20px 0;
-  color: #333;
+  color: #fff;
+  font-weight: 500;
 }
 
 #tag-search-container {
@@ -19,7 +24,7 @@ h1 {
 #tag-search {
   padding: 8px 12px;
   font-size: 16px;
-  border: 1px solid #ccc;
+  border: 1px solid #fff;
   border-radius: 4px;
   width: 300px;
   max-width: 100%;
@@ -33,7 +38,7 @@ h1 {
 }
 
 .template-card {
-  background-color: #fff;
+  background-color: #52796f;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -44,7 +49,8 @@ h1 {
 .template-card h3 {
   margin-top: 0;
   margin-bottom: 10px;
-  color: #333;
+  color: #fff;
+  font-weight: 400;
 }
 
 .template-card img {
@@ -58,7 +64,7 @@ h1 {
 .template-card button {
   padding: 8px 16px;
   font-size: 14px;
-  background-color: #4CAF50;
+  background-color: #84a98c;
   color: white;
   border: none;
   border-radius: 4px;
@@ -68,7 +74,7 @@ h1 {
 
 .template-card a {
   text-decoration: none;
-  color: #4CAF50;
+  color: #B7C3F3;
   font-size: 14px;
 }
 
@@ -88,7 +94,7 @@ h1 {
 }
 
 .modal-content {
-  background-color: #fff;
+  background-color: #5E6472;
   padding: 20px;
   max-width: 90vw;
   max-height: 90vh;
@@ -124,7 +130,7 @@ h1 {
 }
 
 .modal-content .buttons-container button:last-child {
-  background-color: #2196F3;
+  background-color: #B7C3F3;
 }
 
 .preview-container {
@@ -143,7 +149,14 @@ h1 {
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #fff;
+  
+  /* From https://css.glass */
+background: rgba(255, 255, 255, 0.2);
+border-radius: 16px;
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 10px;
   text-align: center;
   z-index: 9999;
@@ -153,7 +166,7 @@ h1 {
 #shuffle-btn {
   padding: 8px 16px;
   font-size: 16px;
-  background-color: #4CAF50;
+  background-color: #B7C3F3;
   color: white;
   border: none;
   border-radius: 4px;
@@ -163,6 +176,14 @@ h1 {
 .header {
   text-align: center;
   margin-bottom: 20px;
+  display:-webkit-flex;
+display:flex;
+-webkit-justify-content:space-between;
+justify-content:space-between;
+-webkit-align-items:center;
+align-items:center;
+padding-left: 20px;
+padding-right:20px;
 }
 
 .title-div {
@@ -174,3 +195,4 @@ h1 {
   justify-content: space-between;
   align-items: center;
 }
+
