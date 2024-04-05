@@ -188,12 +188,17 @@ async function loadTemplates() {
     const templates = await response.json();
     
     const uniqueTags = new Set();
-    templates.forEach(template => {
+    const cards = templates.map(template => {
       template.tags = template.tags.map(tag => tag.toLowerCase());
       template.tags.forEach(tag => uniqueTags.add(tag));
-      const card = createTemplateCard(template);
-      templateGrid.appendChild(card);
+      return createTemplateCard(template);
     });
+    
+    // Shuffle the cards
+    shuffleArray(cards);
+    
+    // Append the shuffled cards to the templateGrid
+    cards.forEach(card => templateGrid.appendChild(card));
     
     initializeTagSearch(Array.from(uniqueTags));
     lazyLoadIframes();
@@ -202,6 +207,13 @@ async function loadTemplates() {
     shuffleBtn.addEventListener('click', shuffleTemplates);
   } catch (error) {
     console.error('Error loading templates:', error);
+  }
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
 }
 
