@@ -37,7 +37,7 @@ function createTemplateCard(template) {
 
   return card;
 }
-
+// define this function as something that doesn't completely create any sort of dependencies 
 function lazyLoadScreenshots() {
   const lazyScreenshots = document.querySelectorAll('.lazy-screenshot');
 
